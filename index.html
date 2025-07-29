@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PreSkool Admin Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-blue: #3d5ee1;
+            --secondary-blue: #4a4de6;
+            --light-blue: #eef1ff;
+            --text-dark: #343a40;
+            --text-light: #6c757d;
+            --background-light: #f8f9fa;
+            --white: #ffffff;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--background-light);
+            color: var(--text-dark);
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            background-color: var(--white);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #f0f0f0;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 25px;
+            gap: 10px;
+        }
+        .sidebar-header .logo-icon {
+            background-color: var(--primary-blue);
+            color: var(--white);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 1.2rem;
+        }
+        .sidebar-header .logo-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        .sidebar-header .logo-text span {
+            color: var(--text-dark);
+        }
+
+        .main-menu {
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 15px;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        .sidebar-nav {
+            flex-grow: 1;
+            list-style: none;
+            overflow-y: auto;
+        }
+
+        /* .nav-item {
+            margin: 0 15px 5px;
+        } */
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background-color: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active-page {
+            background-color: var(--primary-blue);
+            color: var(--white);
+        }
+        
+        .nav-link.active-page:hover {
+            background-color: var(--secondary-blue);
+        }
+
+        .nav-link i {
+            width: 20px;
+            margin-right: 15px;
+            text-align: center;
+        }
+        
+        .nav-link .arrow {
+            margin-left: auto;
+            transition: transform 0.3s ease-in-out; /* Smooth arrow rotation */
+        }
+        
+        .nav-item.open > .nav-link .arrow {
+            transform: rotate(90deg);
+        }
+
+        .sub-menu {
+            list-style: none;
+            padding-left: 50px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease-in-out; /* Smooth toggle transition */
+        }
+        
+        .nav-item.open .sub-menu {
+            max-height: 200px; /* Adjust if more sub-items are needed */
+        }
+        
+        .sub-menu li a {
+            padding: 10px 0;
+            display: block;
+            text-decoration: none;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            position: relative;
+        }
+
+        .sub-menu li a::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #ccc;
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .sub-menu li a:hover, .sub-menu li a.active {
+            color: var(--primary-blue);
+        }
+        .sub-menu li a.active::before {
+            background-color: var(--primary-blue);
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            border-bottom: 1px solid #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .menu-toggle {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--primary-blue);
+        }
+
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            padding: 10px 15px 10px 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            width: 250px;
+            background-color: var(--background-light);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .header-icon {
+            font-size: 1.3rem;
+            color: var(--text-light);
+            cursor: pointer;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-info .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-info .user-role {
+            font-size: 0.75rem;
+            color: var(--primary-blue);
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 30px;
+            flex-grow: 1;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .breadcrumb {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            text-decoration: none;
+            color: var(--text-light);
+        }
+        
+        .breadcrumb a:hover {
+            color: var(--primary-blue);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card-info h3 {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .stat-card-info p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .stat-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            font-size: 1.8rem;
+            color: var(--white);
+        }
+        /* Icon background colors */
+        .icon-bg-1 { background-color: #ffc107; }
+        .icon-bg-2 { background-color: #17a2b8; }
+        .icon-bg-3 { background-color: #28a745; }
+        .icon-bg-4 { background-color: #dc3545; }
+
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 25px;
+        }
+
+        .chart-container {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            height: 400px; /* **FIX: Set a fixed height for chart containers** */
+            display: flex;
+            flex-direction: column;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .chart-header .chart-options i {
+            color: var(--text-light);
+            cursor: pointer;
+        }
+        
+        /* --- Responsive Design --- */
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 1000;
+                transform: translateX(calc(-1 * var(--sidebar-width)));
+                box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .menu-toggle {
+                display: block;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+             .header {
+                padding: 15px;
+            }
+            .header-right {
+                gap: 15px;
+            }
+            .user-info {
+                display: none;
+            }
+            .page-content {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .search-bar {
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- ======================= Sidebar ======================= -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-pen-ruler"></i>
+                </div>
+                <div class="logo-text">Pre<span>Skool</span></div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="main-menu">Main Menu</div>
+                <ul>
+                    <li class="nav-item open">
+                        <a class="nav-link">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span>Dashboard</span>
+                            <i class="fa-solid fa-chevron-right arrow"></i>
+                        </a>
+                        <ul class="sub-menu">
+                            <li><a href="#" class="active">Admin Dashboard</a></li>
+                            <li><a href="#">Teacher Dashboard</a></li>
+                            <li><a href="#">Student Dashboard</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link">
+                            <i class="fa-solid fa-user-graduate"></i>
+                            <span>Students</span>
+                            <i class="fa-solid fa-chevron-right arrow"></i>
+                        </a>
+                        <!-- Add sub-menu here if needed -->
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                            <span>Teachers</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link">
+                            <i class="fa-solid fa-building"></i>
+                            <span>Departments</span>
+                            <i class="fa-solid fa-chevron-right arrow"></i>
+                        </a>
+                        <!-- Add sub-menu here if needed -->
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="fa-solid fa-book-open-reader"></i>
+                            <span>Subjects</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- ======================= Main Content ======================= -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <div class="menu-toggle" id="menu-toggle">
+                         <i class="fas fa-bars"></i>
+                    </div>
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search here">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <img src="https://i.imgur.com/832Pz5S.png" alt="Flag" class="header-icon" style="width:25px; height:auto; border-radius:0;">
+                    <i class="fas fa-bell header-icon"></i>
+                    <i class="fas fa-expand header-icon"></i>
+                    <div class="user-profile">
+                        <img src="https://i.imgur.com/15n0JbY.png" alt="User Avatar">
+                        <div class="user-info">
+                            <div class="user-name">Jassa Rich</div>
+                            <div class="user-role">Administrator</div>
+                        </div>
+                         <i class="fas fa-chevron-down header-icon" style="font-size:0.8rem"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="page-content">
+                <div class="page-header">
+                    <h1>Welcome Admin!</h1>
+                    <div class="breadcrumb">
+                        <a href="#">Home</a> / Admin
+                    </div>
+                </div>
+                
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h3>Students</h3>
+                            <p>50055</p>
+                        </div>
+                        <div class="stat-card-icon icon-bg-1">
+                           <i class="fa-solid fa-user-graduate"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h3>Awards</h3>
+                            <p>50+</p>
+                        </div>
+                        <div class="stat-card-icon icon-bg-2">
+                             <i class="fa-solid fa-award"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h3>Department</h3>
+                            <p>30+</p>
+                        </div>
+                        <div class="stat-card-icon icon-bg-3">
+                             <i class="fa-solid fa-building"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-info">
+                            <h3>Revenue</h3>
+                            <p>$505</p>
+                        </div>
+                        <div class="stat-card-icon icon-bg-4">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h2>Overview</h2>
+                            <div class="chart-options"><i class="fas fa-ellipsis-v"></i></div>
+                        </div>
+                        <canvas id="overviewChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h2>Number of Students</h2>
+                            <div class="chart-options"><i class="fas fa-ellipsis-v"></i></div>
+                        </div>
+                        <canvas id="studentsChart"></canvas>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+
+            // --- Sidebar Toggle for Mobile ---
+            if (menuToggle) {
+                menuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('show');
+                });
+            }
+
+            // --- **NEW: Close Sidebar on Outside Click** ---
+            document.addEventListener('click', function (event) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnMenuToggle = menuToggle.contains(event.target);
+
+                // If the sidebar is open and the click is not inside the sidebar or on the toggle button
+                if (sidebar.classList.contains('show') && !isClickInsideSidebar && !isClickOnMenuToggle) {
+                    sidebar.classList.remove('show');
+                }
+            });
+
+            // --- Sidebar Accordion Menu ---
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => {
+                const subMenu = item.querySelector('.sub-menu');
+                if (subMenu) { // Only add click listener if a sub-menu exists
+                    const link = item.querySelector('.nav-link');
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault(); // Prevent default link behavior
+
+                        // Close other open menus for accordion effect
+                        document.querySelectorAll('.sidebar-nav .nav-item.open').forEach(openItem => {
+                            if (openItem !== item) {
+                                openItem.classList.remove('open');
+                            }
+                        });
+                        
+                        // Toggle the current menu
+                        item.classList.toggle('open');
+                    });
+                }
+            });
+            
+            // --- Chart.js Implementation ---
+
+            // Overview Chart (Line Chart)
+            const overviewCtx = document.getElementById('overviewChart').getContext('2d');
+            const overviewChart = new Chart(overviewCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Teachers',
+                        data: [44, 60, 75, 45, 42, 43, 30],
+                        borderColor: '#3d5ee1',
+                        backgroundColor: 'rgba(61, 94, 225, 0.1)',
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#3d5ee1'
+                    }, {
+                        label: 'Students',
+                        data: [25, 50, 60, 32, 35, 50, 25],
+                        borderColor: '#28c76f',
+                        backgroundColor: 'rgba(40, 199, 111, 0.1)',
+                        tension: 0.4,
+                        fill: false,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: '#28c76f'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { display: true, drawBorder: false },
+                            ticks: { stepSize: 10 }
+                        },
+                        x: {
+                             grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // Number of Students Chart (Bar Chart)
+            const studentsCtx = document.getElementById('studentsChart').getContext('2d');
+            const studentsChart = new Chart(studentsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['', '', '', '', '', '', '', '', '', ''], // No labels on x-axis
+                    datasets: [{
+                        label: 'Girls',
+                        data: [330, 600, 340, 620, 350, 250, 280, 430, 640, 450],
+                        backgroundColor: '#3d5ee1',
+                        borderRadius: 4
+                    }, {
+                        label: 'Boys',
+                        data: [420, 520, 500, 560, 480, 400, 350, 420, 550, 480],
+                        backgroundColor: '#86d9e0',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                           beginAtZero: true,
+                           max: 800,
+                           ticks: { stepSize: 200 },
+                           grid: { drawBorder: false }
+                        },
+                        x: {
+                           grid: { display: false, },
+                           categoryPercentage: 0.7,
+                           barPercentage: 0.7
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
